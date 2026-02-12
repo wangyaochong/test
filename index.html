@@ -5,6 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>贪吃蛇游戏</title>
     <style>
+        :root {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --text-color: #fff;
+            --game-board-bg: #0f0f1a;
+            --border-color: #4ecca3;
+            --shadow-color: rgba(78, 204, 163, 0.3);
+            --primary-btn-bg: #4ecca3;
+            --primary-btn-color: #1a1a2e;
+            --primary-btn-hover: #45b593;
+            --snake-color: #4ecca3;
+            --snake-head: #45b593;
+            --food-color: #ff6b6b;
+            --game-over-bg: rgba(0, 0, 0, 0.9);
+            --instructions-color: #aaa;
+        }
+
+        [data-theme="light"] {
+            --bg-gradient-start: #e8f4f8;
+            --bg-gradient-end: #d4e9f7;
+            --text-color: #333;
+            --game-board-bg: #f5f5f5;
+            --border-color: #2d8f6f;
+            --shadow-color: rgba(45, 143, 111, 0.3);
+            --primary-btn-bg: #2d8f6f;
+            --primary-btn-color: #fff;
+            --primary-btn-hover: #247a5c;
+            --snake-color: #2d8f6f;
+            --snake-head: #247a5c;
+            --food-color: #e74c3c;
+            --game-over-bg: rgba(255, 255, 255, 0.95);
+            --instructions-color: #666;
+        }
+
         body {
             display: flex;
             flex-direction: column;
@@ -12,22 +46,40 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #fff;
+            color: var(--text-color);
+            transition: background 0.3s, color 0.3s;
         }
         h1 {
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
+        #themeToggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: var(--primary-btn-bg);
+            color: var(--primary-btn-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #themeToggle:hover {
+            background-color: var(--primary-btn-hover);
+        }
         #gameContainer {
             position: relative;
         }
         #gameBoard {
-            border: 3px solid #4ecca3;
+            border: 3px solid var(--border-color);
             border-radius: 8px;
-            box-shadow: 0 0 20px rgba(78, 204, 163, 0.3);
-            background-color: #0f0f1a;
+            box-shadow: 0 0 20px var(--shadow-color);
+            background-color: var(--game-board-bg);
+            transition: background-color 0.3s, border-color 0.3s;
         }
         #scoreBoard {
             font-size: 24px;
@@ -36,8 +88,8 @@
         #startBtn {
             padding: 10px 30px;
             font-size: 18px;
-            background-color: #4ecca3;
-            color: #1a1a2e;
+            background-color: var(--primary-btn-bg);
+            color: var(--primary-btn-color);
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -45,7 +97,7 @@
             margin-bottom: 15px;
         }
         #startBtn:hover {
-            background-color: #45b593;
+            background-color: var(--primary-btn-hover);
             transform: scale(1.05);
         }
         #gameOver {
@@ -54,20 +106,21 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
+            background: var(--game-over-bg);
             padding: 30px 50px;
             border-radius: 10px;
             text-align: center;
-            border: 2px solid #ff6b6b;
+            border: 2px solid var(--food-color);
+            transition: background 0.3s;
         }
         #gameOver h2 {
-            color: #ff6b6b;
+            color: var(--food-color);
             margin: 0 0 15px 0;
         }
         #restartBtn {
             padding: 10px 25px;
             font-size: 16px;
-            background-color: #ff6b6b;
+            background-color: var(--food-color);
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -79,11 +132,13 @@
         .instructions {
             margin-top: 15px;
             font-size: 14px;
-            color: #aaa;
+            color: var(--instructions-color);
+            transition: color 0.3s;
         }
     </style>
 </head>
 <body>
+    <button id="themeToggle" onclick="toggleTheme()">切换主题</button>
     <h1>🐍 贪吃蛇</h1>
     <div id="scoreBoard">得分: <span id="score">0</span></div>
     <button id="startBtn" onclick="startGame()">开始游戏</button>
@@ -104,6 +159,7 @@
         const finalScoreElement = document.getElementById('finalScore');
         const gameOverElement = document.getElementById('gameOver');
         const startBtn = document.getElementById('startBtn');
+        const themeToggle = document.getElementById('themeToggle');
 
         const gridSize = 20;
         const tileCount = canvas.width / gridSize;
@@ -115,6 +171,24 @@
         let score = 0;
         let gameLoop = null;
         let isGameRunning = false;
+        let currentTheme = 'dark';
+
+        function getCssVariable(name) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        }
+
+        function toggleTheme() {
+            if (currentTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                currentTheme = 'light';
+                themeToggle.textContent = '切换到暗色';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                currentTheme = 'dark';
+                themeToggle.textContent = '切换到亮色';
+            }
+            draw();
+        }
 
         function startGame() {
             if (isGameRunning) return;
@@ -167,20 +241,24 @@
         }
 
         function draw() {
-            ctx.fillStyle = '#0f0f1a';
+            const boardBg = getCssVariable('--game-board-bg');
+            const snakeColor = getCssVariable('--snake-color');
+            const snakeHead = getCssVariable('--snake-head');
+            const foodColor = getCssVariable('--food-color');
+
+            ctx.fillStyle = boardBg;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#4ecca3';
             snake.forEach((segment, index) => {
                 if (index === 0) {
-                    ctx.fillStyle = '#45b593';
+                    ctx.fillStyle = snakeHead;
                 } else {
-                    ctx.fillStyle = '#4ecca3';
+                    ctx.fillStyle = snakeColor;
                 }
                 ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
             });
 
-            ctx.fillStyle = '#ff6b6b';
+            ctx.fillStyle = foodColor;
             ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
         }
 
