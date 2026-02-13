@@ -266,6 +266,21 @@
             draw();
         }
 
+        function initGame() {
+            const size = mapSize;
+            tileCount = size;
+            canvas.width = size * gridSize;
+            canvas.height = size * gridSize;
+            
+            snake = [
+                { x: Math.floor(size / 2), y: Math.floor(size / 2) },
+                { x: Math.floor(size / 2) - 1, y: Math.floor(size / 2) },
+                { x: Math.floor(size / 2) - 2, y: Math.floor(size / 2) }
+            ];
+            placeFood();
+            draw();
+        }
+
         function setMapSize(size) {
             if (isGameRunning) return;
             
@@ -486,7 +501,7 @@
             delete keysPressed[key];
         });
 
-        draw();
+        initGame();
     </script>
 </body>
 </html>
