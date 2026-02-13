@@ -173,6 +173,13 @@
         let gameLoop = null;
         let isGameRunning = false;
         let currentTheme = 'dark';
+        let lastKeyTime = 0;
+        let lastKey = '';
+        let isLongPress = false;
+        let keysPressed = {};
+        const longPressThreshold = 300;
+        const normalSpeed = 100;
+        const fastSpeed = 50;
 
         function getCssVariable(name) {
             return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -206,14 +213,33 @@
             gameOverElement.style.display = 'none';
             startBtn.style.display = 'none';
             isGameRunning = true;
+            isLongPress = false;
             
             placeFood();
             
             if (gameLoop) clearInterval(gameLoop);
-            gameLoop = setInterval(gameStep, 100);
+            gameLoop = setInterval(gameStep, normalSpeed);
         }
 
         function gameStep() {
+            const currentTime = Date.now();
+            const timeSinceLastKey = currentTime - lastKeyTime;
+            const isKeyStillPressed = lastKey && keysPressed[lastKey];
+            
+            if (timeSinceLastKey > longPressThreshold && isKeyStillPressed) {
+                if (!isLongPress) {
+                    isLongPress = true;
+                    clearInterval(gameLoop);
+                    gameLoop = setInterval(gameStep, fastSpeed);
+                }
+            } else {
+                if (isLongPress) {
+                    isLongPress = false;
+                    clearInterval(gameLoop);
+                    gameLoop = setInterval(gameStep, normalSpeed);
+                }
+            }
+            
             const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
             if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
@@ -288,6 +314,12 @@
 
         document.addEventListener('keydown', (e) => {
             const key = e.key;
+            keysPressed[key] = true;
+            
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'W', 's', 'S', 'a', 'A', 'd', 'D'].includes(key)) {
+                lastKey = key;
+                lastKeyTime = Date.now();
+            }
             
             if (!isGameRunning && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'W', 's', 'S', 'a', 'A', 'd', 'D'].includes(key)) {
                 let initialDx = 1, initialDy = 0;
@@ -341,6 +373,11 @@
                     if (dx !== -1) { dx = 1; dy = 0; }
                     break;
             }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            const key = e.key;
+            delete keysPressed[key];
         });
 
         draw();
