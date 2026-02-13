@@ -161,6 +161,30 @@
         .sizeBtn.active {
             box-shadow: 0 0 0 2px var(--text-color);
         }
+        #colorSelector {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #colorSelector label {
+            font-size: 16px;
+        }
+        .colorBtn {
+            width: 30px;
+            height: 30px;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .colorBtn:hover {
+            transform: scale(1.1);
+        }
+        .colorBtn.active {
+            border-color: var(--text-color);
+            box-shadow: 0 0 0 2px var(--bg-gradient-start);
+        }
     </style>
 </head>
 <body>
@@ -172,6 +196,16 @@
         <button class="sizeBtn" onclick="setMapSize(20)">小</button>
         <button class="sizeBtn" onclick="setMapSize(30)">中</button>
         <button class="sizeBtn" onclick="setMapSize(40)">大</button>
+    </div>
+    <div id="colorSelector">
+        <label>蛇体颜色: </label>
+        <button class="colorBtn active" style="background-color: #ff0000;" onclick="setSnakeColor('#ff0000', '#cc0000')" data-color="red"></button>
+        <button class="colorBtn" style="background-color: #ff7f00;" onclick="setSnakeColor('#ff7f00', '#cc6600')" data-color="orange"></button>
+        <button class="colorBtn" style="background-color: #ffff00;" onclick="setSnakeColor('#ffff00', '#cccc00')" data-color="yellow"></button>
+        <button class="colorBtn" style="background-color: #00ff00;" onclick="setSnakeColor('#00ff00', '#00cc00')" data-color="green"></button>
+        <button class="colorBtn" style="background-color: #0000ff;" onclick="setSnakeColor('#0000ff', '#0000cc')" data-color="blue"></button>
+        <button class="colorBtn" style="background-color: #4b0082;" onclick="setSnakeColor('#4b0082', '#3b0062')" data-color="indigo"></button>
+        <button class="colorBtn" style="background-color: #9400d3;" onclick="setSnakeColor('#9400d3', '#7400a3')" data-color="violet"></button>
     </div>
     <button id="startBtn" onclick="startGame()">开始游戏</button>
     <div id="gameContainer">
@@ -209,6 +243,8 @@
         let lastKey = '';
         let isLongPress = false;
         let keysPressed = {};
+        let currentSnakeColor = '#ff0000';
+        let currentSnakeHead = '#cc0000';
         const longPressThreshold = 300;
         const normalSpeed = 100;
         const fastSpeed = 50;
@@ -249,6 +285,20 @@
                 { x: Math.floor(size / 2) - 2, y: Math.floor(size / 2) }
             ];
             placeFood();
+            draw();
+        }
+
+        function setSnakeColor(color, headColor) {
+            currentSnakeColor = color;
+            currentSnakeHead = headColor;
+            document.documentElement.style.setProperty('--snake-color', color);
+            document.documentElement.style.setProperty('--snake-head', headColor);
+            
+            document.querySelectorAll('.colorBtn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
             draw();
         }
 
@@ -327,8 +377,6 @@
 
         function draw() {
             const boardBg = getCssVariable('--game-board-bg');
-            const snakeColor = getCssVariable('--snake-color');
-            const snakeHead = getCssVariable('--snake-head');
             const foodColor = getCssVariable('--food-color');
 
             ctx.fillStyle = boardBg;
@@ -336,9 +384,9 @@
 
             snake.forEach((segment, index) => {
                 if (index === 0) {
-                    ctx.fillStyle = snakeHead;
+                    ctx.fillStyle = currentSnakeHead;
                 } else {
-                    ctx.fillStyle = snakeColor;
+                    ctx.fillStyle = currentSnakeColor;
                 }
                 ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
             });
