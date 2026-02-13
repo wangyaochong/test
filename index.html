@@ -190,7 +190,7 @@
             draw();
         }
 
-        function startGame() {
+        function startGame(initialDx, initialDy) {
             if (isGameRunning) return;
             
             snake = [
@@ -198,8 +198,8 @@
                 { x: 9, y: 10 },
                 { x: 8, y: 10 }
             ];
-            dx = 1;
-            dy = 0;
+            dx = initialDx !== undefined ? initialDx : 1;
+            dy = initialDy !== undefined ? initialDy : 0;
             score = 0;
             scoreElement.textContent = score;
             gameOverElement.style.display = 'none';
@@ -286,9 +286,39 @@
         }
 
         document.addEventListener('keydown', (e) => {
+            const key = e.key;
+            
+            if (!isGameRunning && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'W', 's', 'S', 'a', 'A', 'd', 'D'].includes(key)) {
+                let initialDx = 1, initialDy = 0;
+                switch(key) {
+                    case 'ArrowUp':
+                    case 'w':
+                    case 'W':
+                        initialDx = 0; initialDy = -1;
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                    case 'S':
+                        initialDx = 0; initialDy = 1;
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                    case 'A':
+                        initialDx = -1; initialDy = 0;
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                    case 'D':
+                        initialDx = 1; initialDy = 0;
+                        break;
+                }
+                startGame(initialDx, initialDy);
+                return;
+            }
+            
             if (!isGameRunning) return;
             
-            switch(e.key) {
+            switch(key) {
                 case 'ArrowUp':
                 case 'w':
                 case 'W':
