@@ -136,12 +136,43 @@
             color: var(--instructions-color);
             transition: color 0.3s;
         }
+        #sizeSelector {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #sizeSelector label {
+            font-size: 16px;
+        }
+        .sizeBtn {
+            padding: 5px 15px;
+            font-size: 14px;
+            background-color: var(--primary-btn-bg);
+            color: var(--primary-btn-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .sizeBtn:hover {
+            background-color: var(--primary-btn-hover);
+        }
+        .sizeBtn.active {
+            box-shadow: 0 0 0 2px var(--text-color);
+        }
     </style>
 </head>
 <body>
     <button id="themeToggle" onclick="toggleTheme()">切换主题</button>
     <h1>🐍 贪吃蛇</h1>
     <div id="scoreBoard">得分: <span id="score">0</span></div>
+    <div id="sizeSelector">
+        <label>地图大小: </label>
+        <button class="sizeBtn" onclick="setMapSize(20)">小</button>
+        <button class="sizeBtn" onclick="setMapSize(30)">中</button>
+        <button class="sizeBtn" onclick="setMapSize(40)">大</button>
+    </div>
     <button id="startBtn" onclick="startGame()">开始游戏</button>
     <div id="gameContainer">
         <canvas id="gameBoard" width="400" height="400"></canvas>
@@ -163,7 +194,8 @@
         const themeToggle = document.getElementById('themeToggle');
 
         const gridSize = 20;
-        const tileCount = canvas.width / gridSize;
+        let tileCount = 20;
+        let mapSize = 20;
 
         let snake = [];
         let food = { x: 10, y: 10 };
@@ -198,13 +230,39 @@
             draw();
         }
 
+        function setMapSize(size) {
+            if (isGameRunning) return;
+            
+            mapSize = size;
+            tileCount = size;
+            canvas.width = size * gridSize;
+            canvas.height = size * gridSize;
+            
+            document.querySelectorAll('.sizeBtn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            snake = [
+                { x: Math.floor(size / 2), y: Math.floor(size / 2) },
+                { x: Math.floor(size / 2) - 1, y: Math.floor(size / 2) },
+                { x: Math.floor(size / 2) - 2, y: Math.floor(size / 2) }
+            ];
+            placeFood();
+            draw();
+        }
+
+        document.querySelectorAll('.sizeBtn')[0].classList.add('active');
+
         function startGame(initialDx, initialDy) {
             if (isGameRunning) return;
             
+            const centerX = Math.floor(tileCount / 2);
+            const centerY = Math.floor(tileCount / 2);
             snake = [
-                { x: 10, y: 10 },
-                { x: 9, y: 10 },
-                { x: 8, y: 10 }
+                { x: centerX, y: centerY },
+                { x: centerX - 1, y: centerY },
+                { x: centerX - 2, y: centerY }
             ];
             dx = initialDx !== undefined ? initialDx : 1;
             dy = initialDy !== undefined ? initialDy : 0;
